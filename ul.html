@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced JS Labs</title>
+    <link id="dynamic-favicon" rel="icon" href="data:,">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #00ff9d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            overflow-x: hidden;
+            perspective: 1000px; /* Needed for 3D tilt effect */
+        }
+
+        h1 { font-size: 4rem; margin-top: 50px; text-transform: uppercase; letter-spacing: 5px; }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            align-items: center;
+            padding-bottom: 100px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #333;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.1s; /* Smooth movement for tilt */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        button {
+            background: linear-gradient(45deg, #00ff9d, #00b8ff);
+            border: none;
+            padding: 15px 40px;
+            color: #000;
+            font-weight: 900;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 0 15px #00ff9d;
+        }
+
+        button:hover { transform: scale(1.05); }
+
+        /* Hidden video element for processing webcam */
+        #hidden-video { display: none; }
+        
+        /* Visible preview just to prove it works */
+        #preview-canvas {
+            width: 64px;
+            height: 64px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            margin-top: 10px;
+        }
+
+        .status { color: #888; font-size: 0.9rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Forbidden API Labs</h1>
+
+    <div class="container">
+
+        <div class="card" id="tilt-card-1">
+            <h2>1. The "Selfie" Tab Icon</h2>
+            <p>I will put your live webcam video inside the tiny browser tab icon.</p>
+            <canvas id="preview-canvas" width="32" height="32"></canvas>
+            <br>
+            <button onclick="startWebcamIcon()">Activate Camera Icon</button>
+            <p class="status">Look at the tab at the top of your browser after clicking!</p>
+        </div>
+
+        <div class="card" id="tilt-card-2">
+            <h2>2. The Lock Screen Hijack</h2>
+            <p>I will take over your media keys. Check your phone's lock screen or your keyboard's "Now Playing" pop-up.</p>
+            <button onclick="hijackMediaSession()">Inject Fake Media</button>
+        </div>
+
+        <div class="card" id="tilt-card-3">
+            <h2>3. 3D Gyroscope Depth</h2>
+            <p>Move your mouse (or tilt your phone) to see the cards move in 3D space.</p>
+            <p class="status" id="tilt-data">Waiting for movement...</p>
+        </div>
+
+    </div>
+
+    <video id="hidden-video" autoplay playsinline></video>
+    <audio id="silent-audio" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        /* =========================================
+           1. THE LIVE WEBCAM FAVICON
+           ========================================= */
+        async function startWebcamIcon() {
+            const video = document.getElementById('hidden-video');
+            const canvas = document.getElementById('preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const faviconLink = document.getElementById('dynamic-favicon');
+
+            try {
+                // 1. Ask user for camera permission
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+
+                // 2. Start the loop
+                setInterval(() => {
+                    // Draw video frame to canvas (shrink to 32x32)
+                    ctx.drawImage(video, 0, 0, 32, 32);
+                    
+                    // 3. THE MAGIC: Convert canvas to Data URL
+                    // This creates a text string representing the image
+                    const imageData = canvas.toDataURL('image/png');
+                    
+                    // 4. Update the HTML tag
+                    faviconLink.href = imageData;
+                }, 100); // Update 10 times a second (10fps)
+
+            } catch (err) {
+                alert("You denied camera access! I can't see you.");
+            }
+        }
+
+
+        /* =========================================
+           2. MEDIA SESSION API (LOCK SCREEN HACK)
+           ========================================= */
+        function hijackMediaSession() {
+            const audio = document.getElementById('silent-audio');
+            
+            // We need to play audio to trigger the OS media controls
+            // We use a very quiet volume so it doesn't annoy the user
+            audio.volume = 0.1; 
+            audio.play().catch(e => console.log("Interaction required first"));
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: "SYSTEM HACKED",
+                    artist: "Do Not Turn Off Device",
+                    album: "Uploading Data...",
+                    artwork: [
+                        { src: "https://cdn-icons-png.flaticon.com/512/564/564619.png", sizes: "512x512", type: "image/png" }
+                    ]
+                });
+
+                // Capture the hardware buttons
+                navigator.mediaSession.setActionHandler('play', () => { alert("You tried to press PLAY!"); });
+                navigator.mediaSession.setActionHandler('pause', () => { alert("You tried to press PAUSE! I won't stop."); });
+                navigator.mediaSession.setActionHandler('nexttrack', () => { document.body.style.background = "red"; });
+            }
+        }
+
+
+        /* =========================================
+           3. 3D PARALLAX (MOUSE & GYROSCOPE)
+           ========================================= */
+        const cards = document.querySelectorAll('.card');
+        const display = document.getElementById('tilt-data');
+
+        // Logic for Desktop (Mouse)
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth - e.pageX * 2) / 20;
+            const y = (window.innerHeight - e.pageY * 2) / 20;
+            
+            cards.forEach(card => {
+                card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+            });
+            display.innerText = `Mouse: X ${x.toFixed(0)} | Y ${y.toFixed(0)}`;
+        });
+
+        // Logic for Mobile (Gyroscope)
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', (e) => {
+                const x = e.gamma; // Left/Right tilt
+                const y = e.beta;  // Front/Back tilt
+                
+                // Limit the rotation so it doesn't flip over
+                if (x < 90 && x > -90) {
+                    cards.forEach(card => {
+                        card.style.transform = `rotateY(${x / 2}deg) rotateX(${-y / 2}deg)`;
+                    });
+                    display.innerText = `Gyro: X ${x.toFixed(0)} | Y ${y.toFixed(0)}`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

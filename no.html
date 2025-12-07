@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Nahid</title>
+    <link id="dynamic-favicon" rel="icon" href="data:,">
+    
+    <style>
+        body {
+            background-color: #080808;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            /* Gradient Text Effect on the page itself */
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
+            background-size: 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 5s infinite alternate;
+        }
+
+        p { color: #666; font-size: 1.2rem; }
+
+        /* The canvas is hidden, we only use it to generate the icon */
+        canvas { display: none; }
+
+        @keyframes rainbow {
+            0% { background-position: 0%; }
+            100% { background-position: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Not Nahid</h1>
+    <p>☝️ Look at the Browser Tab ☝️</p>
+    <p>RGB Sync: Active</p>
+
+    <canvas id="icon-canvas" width="32" height="32"></canvas>
+
+    <script>
+        /* =========================================
+           CONFIGURATION
+           ========================================= */
+        const brandName = "Not Nahid";
+        const speed = 150; // Speed of animation in ms
+        
+        // Emojis to simulate "Color" in the text bar
+        const colors = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣"];
+        
+        // HSL Color values for the Favicon (Hue 0-360)
+        let hue = 0;
+        
+        // Counters
+        let step = 0;
+
+
+        /* =========================================
+           THE ENGINE
+           ========================================= */
+        function animateBrand() {
+            
+            // --- 1. TITLE BAR ANIMATION (The "Wave" + Emoji) ---
+            
+            // Calculate which emoji to use
+            const colorEmoji = colors[step % colors.length];
+            
+            // Calculate "Wave" effect for text casing
+            // "Not Nahid" -> "nOt Nahid" -> "noT Nahid"
+            let wavedText = "";
+            for (let i = 0; i < brandName.length; i++) {
+                // If the current step matches the letter index, make it UPPERCASE
+                // We use modulus (%) to loop the wave across the string length
+                if (i === (step % brandName.length)) {
+                    wavedText += brandName[i].toUpperCase();
+                } else {
+                    wavedText += brandName[i].toLowerCase();
+                }
+            }
+
+            // Set the Document Title
+            document.title = `${colorEmoji} ${wavedText} ${colorEmoji}`;
+
+
+            // --- 2. FAVICON ANIMATION (Real RGB Colors) ---
+            
+            const canvas = document.getElementById('icon-canvas');
+            const ctx = canvas.getContext('2d');
+            const link = document.getElementById('dynamic-favicon');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, 32, 32);
+
+            // Draw Background (Changing Color)
+            // hsl(hue, 100%, 50%) iterates through all colors of the rainbow
+            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+            ctx.fillRect(0, 0, 32, 32);
+
+            // Draw Text "NN" (Not Nahid) inside the icon
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("NN", 16, 17);
+
+            // Update the favicon link tag
+            link.href = canvas.toDataURL('image/png');
+
+
+            // --- 3. INCREMENT LOOP ---
+            step++;
+            hue += 20; // Shift color by 20 degrees
+            if (hue > 360) hue = 0;
+
+        }
+
+        // Start the engine
+        setInterval(animateBrand, speed);
+
+    </script>
+</body>
+</html>
