@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <link id="dynamic-favicon" rel="icon" href="data:,">
+    <style>
+        body {
+            background-color: #000;
+            color: cyan;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        h1 { font-size: 3rem; margin-bottom: 10px; }
+        p { font-size: 1.2rem; color: #555; }
+        .controls { margin-top: 30px; display: flex; gap: 20px; }
+        button {
+            background: cyan;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        button:hover { background: #fff; }
+        
+        /* Just for the demo visualization */
+        #preview-canvas {
+            border: 2px solid cyan;
+            margin-top: 20px;
+            background: #222;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Look Up! ☝️</h1>
+    <p>Watch your Tab Title, Favicon, and URL Bar.</p>
+    
+    <canvas id="preview-canvas" width="32" height="32"></canvas>
+    <p style="font-size: 0.8rem; color: #444;">(This tiny box is what is streaming to your Favicon)</p>
+
+    <div class="controls">
+        <button onclick="startTitleVideo()">1. Animate Title</button>
+        <button onclick="startFaviconVideo()">2. Play Icon Video</button>
+        <button onclick="startUrlWave()">3. Animate URL</button>
+    </div>
+
+    <script>
+        /* --- 1. TITLE BAR "VIDEO" (ASCII ANIMATION) --- */
+        let titleInterval;
+        function startTitleVideo() {
+            if (titleInterval) clearInterval(titleInterval);
+            
+            // Frame-by-frame animation of a stick figure running
+            const frames = [
+                "🏃‍♂️ . . . . . 🏁",
+                ". 🏃‍♂️ . . . . 🏁",
+                ". . 🏃‍♂️ . . . 🏁",
+                ". . . 🏃‍♂️ . . 🏁",
+                ". . . . 🏃‍♂️ . 🏁",
+                ". . . . . 🏃‍♂️ 🏁",
+                ". . . . . . 🏁🏃‍♂️", // Crossed line
+                "🎉 WINNER! 🎉"
+            ];
+
+            let i = 0;
+            titleInterval = setInterval(() => {
+                document.title = frames[i];
+                i = (i + 1) % frames.length;
+            }, 500); // Update every 500ms
+        }
+
+
+        /* --- 2. FAVICON VIDEO (CANVAS STREAMING) --- */
+        // This is the wildest one. We draw to a canvas, convert it to an image, 
+        // and replace the <link rel="icon"> tag 30 times a second.
+        let faviconInterval;
+        
+        function startFaviconVideo() {
+            if (faviconInterval) clearInterval(faviconInterval);
+
+            const canvas = document.getElementById('preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const link = document.getElementById('dynamic-favicon');
+            
+            let angle = 0;
+
+            faviconInterval = setInterval(() => {
+                // 1. Clear the canvas
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, 32, 32);
+
+                // 2. Draw a rotating pacman
+                ctx.save();
+                ctx.translate(16, 16);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.arc(0, 0, 14, 0.2 * Math.PI, 1.8 * Math.PI); // Pacman mouth
+                ctx.lineTo(0, 0);
+                ctx.fillStyle = '#FFFF00'; // Yellow
+                ctx.fill();
+                ctx.restore();
+
+                // 3. Update rotation
+                angle += 0.2;
+
+                // 4. THE MAGIC: Convert canvas to image URL and set as Favicon
+                link.href = canvas.toDataURL('image/png');
+            }, 50); // 20 Frames Per Second
+        }
+
+
+        /* --- 3. URL BAR WAVE (HASH HACKING) --- */
+        // We modify the anchor part of the URL (#...) repeatedly.
+        // We use replaceState so we don't break your "Back" button history.
+        let urlInterval;
+        
+        function startUrlWave() {
+            if (urlInterval) clearInterval(urlInterval);
+
+            const wave = " ▂▃▄▅▆▇█▇▆▅▄▃▂ ";
+            let i = 0;
+
+            urlInterval = setInterval(() => {
+                // Create a sliding window of the wave string
+                const segment = wave.substring(i) + wave.substring(0, i);
+                const display = segment.substring(0, 10); // Show 10 chars at a time
+                
+                // Update the URL without reloading page
+                history.replaceState(null, null, "#" + display);
+                
+                i++;
+                if (i >= wave.length) i = 0;
+            }, 100);
+        }
+
+    </script>
+</body>
+</html>
