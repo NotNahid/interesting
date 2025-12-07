@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normal Website</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #222;
+            color: #fff;
+            text-align: center;
+            padding-top: 50px;
+            overflow: hidden; /* Keeps the button from causing scrollbars */
+            transition: filter 0.2s;
+        }
+
+        h1 { margin-bottom: 40px; }
+
+        #runaway-btn {
+            background: #ff3333;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            position: absolute; /* Essential for moving it around */
+            transition: all 0.1s ease; /* Makes the movement slightly smooth */
+        }
+
+        .glitch-mode {
+            /* Inverts colors and skews the page */
+            filter: invert(100%) hue-rotate(180deg);
+            transform: skewX(10deg);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Try to click the button below...</h1>
+
+    <button id="runaway-btn">CLICK ME FOR $1,000</button>
+
+    <div style="margin-top: 200px; color: #888;">
+        <p>(Also, press <strong>F12</strong> and check the Console tab!)</p>
+        <button onclick="toggleGlitch()">⚠️ Don't Press This</button>
+    </div>
+
+    <script>
+        /* --- 1. THE CLINGY TITLE MARQUEE --- */
+        let originalTitle = document.title;
+        let scrollTimer = null;
+        const msg = " PLEASE COME BACK... WE MISS YOU... ";
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // User left the tab - Start scrolling
+                let position = 0;
+                scrollTimer = setInterval(() => {
+                    document.title = msg.substring(position) + msg.substring(0, position);
+                    position++;
+                    if (position > msg.length) position = 0;
+                }, 200);
+            } else {
+                // User came back - Stop scrolling and reset
+                clearInterval(scrollTimer);
+                document.title = "Oh, you're back! ❤️";
+                setTimeout(() => { document.title = originalTitle; }, 2000);
+            }
+        });
+
+        /* --- 2. THE UNCLICKABLE BUTTON --- */
+        const btn = document.getElementById('runaway-btn');
+        
+        btn.addEventListener('mouseover', function() {
+            // Get window dimensions
+            const maxX = window.innerWidth - btn.offsetWidth;
+            const maxY = window.innerHeight - btn.offsetHeight;
+
+            // Generate random positions
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+
+            // Apply new position
+            btn.style.left = randomX + 'px';
+            btn.style.top = randomY + 'px';
+        });
+
+        // Just in case they are fast enough to click it (or use Tab key)
+        btn.addEventListener('click', function() {
+            alert("HOW DID YOU CATCH ME?! Cheater!");
+        });
+
+
+        /* --- 3. THE SCARY CONSOLE --- */
+        // We wrap this in a timeout so it runs after the page loads
+        setTimeout(() => {
+            console.clear();
+            console.log(
+                "%c STOP! ",
+                "color: red; font-size: 60px; font-weight: bold; text-shadow: 2px 2px 0px black;"
+            );
+            console.log(
+                "%cThis is a browser feature intended for developers. If someone told you to copy-paste something here to enable a 'hack', it is a scam.",
+                "font-size: 18px; color: white;"
+            );
+            console.log(
+                "%c(We are watching you...)",
+                "font-size: 12px; color: #444; margin-top: 20px;"
+            );
+        }, 1000);
+
+
+        /* --- 4. THE FAKE GLITCH --- */
+        function toggleGlitch() {
+            document.body.classList.toggle('glitch-mode');
+            
+            // Add a vibrating effect if on mobile
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100, 50, 100]);
+            }
+            
+            alert("SYSTEM ERROR: GRAPHICS DRIVER FAILURE INITIATED.");
+        }
+    </script>
+</body>
+</html>
