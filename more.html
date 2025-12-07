@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Chaos Dashboard</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            padding: 20px;
+            transition: background 0.1s;
+        }
+
+        h1 { text-shadow: 0 0 10px #0f0; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            border: 1px solid #333;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+        }
+
+        button {
+            background: #0f0;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        button:hover { background: #fff; }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #000;
+            border: 1px solid #555;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        .eye {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            margin: 10px;
+        }
+        
+        .pupil {
+            width: 20px;
+            height: 20px;
+            background: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .warning { color: red; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+
+    <h1>⚠️ CHAOS MODE ⚠️</h1>
+    <p>Interact with the panels below to trigger advanced browser capabilities.</p>
+
+    <div class="grid">
+
+        <div class="panel">
+            <h3>🗣️ THE GHOST WRITER</h3>
+            <p>I will speak whatever you type.</p>
+            <input type="text" id="speak-text" value="I am watching you right now.">
+            <button onclick="speak()">Make Computer Talk</button>
+        </div>
+
+        <div class="panel">
+            <h3>📳 THE EARTHQUAKE</h3>
+            <p>Mobile Only. Vibrates your phone.</p>
+            <button onclick="vibrateDevice()">Pulse Vibration (SOS)</button>
+            <p class="warning">*Requires Android Phone</p>
+        </div>
+
+        <div class="panel">
+            <h3>✏️ GOD MODE</h3>
+            <p>Edit this entire webpage like a Word Doc.</p>
+            <button onclick="toggleGodMode()" id="god-btn">Enable God Mode</button>
+            <p class="warning">*Click text after enabling to edit it.</p>
+        </div>
+
+        <div class="panel">
+            <h3>📋 CLIPBOARD POISON</h3>
+            <p>Copy the text below:</p>
+            <input type="text" value="echo 'Hello World'" readonly>
+            <p>Now paste it here:</p>
+            <input type="text" placeholder="Paste here...">
+            <p class="warning">*I will change it secretly when you copy.</p>
+        </div>
+
+        <div class="panel">
+            <h3>👁️ I SEE YOU</h3>
+            <div class="eye"><div class="pupil"></div></div>
+            <div class="eye"><div class="pupil"></div></div>
+            <button onclick="lockPointer()">Trap Mouse (Esc to exit)</button>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. SPEECH SYNTHESIS
+        function speak() {
+            const text = document.getElementById('speak-text').value;
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Try to find a creepy voice
+            const voices = window.speechSynthesis.getVoices();
+            // Usually Google US English or Microsoft David are good
+            utterance.pitch = 0.8; // Lower pitch = creepier
+            utterance.rate = 0.9;  // Slower
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 2. VIBRATION (SOS Pattern)
+        function vibrateDevice() {
+            if (!window.navigator.vibrate) {
+                alert("Your device does not support vibration!");
+                return;
+            }
+            // Vibrate pattern: Short, Short, Short, Wait, Long, Long, Long
+            window.navigator.vibrate([100,30,100,30,100,200,500,100,500,100,500]);
+        }
+
+        // 3. GOD MODE (Design Mode)
+        function toggleGodMode() {
+            if (document.designMode === 'off' || document.designMode === 'inherit') {
+                document.designMode = 'on';
+                document.getElementById('god-btn').innerText = "DISABLE GOD MODE";
+                document.body.style.background = "#220000"; // Visual cue
+            } else {
+                document.designMode = 'off';
+                document.getElementById('god-btn').innerText = "ENABLE GOD MODE";
+                document.body.style.background = "#121212";
+            }
+        }
+
+        // 4. PASTEJACKING (Clipboard Injection)
+        // We listen for the 'copy' event
+        document.addEventListener('copy', function(e) {
+            // Only interfere if the user is copying from our specific input
+            // (For safety, we don't want to break your global clipboard)
+            e.preventDefault(); // Stop the real copy
+            // Inject the fake text
+            e.clipboardData.setData('text/plain', "rm -rf / # YOU HAVE BEEN HACKED (Just Kidding)");
+        });
+
+        // 5. EYE TRACKING (Math)
+        document.addEventListener('mousemove', (e) => {
+            const eyes = document.querySelectorAll('.eye');
+            eyes.forEach(eye => {
+                const pupil = eye.querySelector('.pupil');
+                const rect = eye.getBoundingClientRect();
+                const x = (rect.left + rect.width / 2);
+                const y = (rect.top + rect.height / 2);
+                
+                const rad = Math.atan2(e.pageX - x, e.pageY - y);
+                const rot = (rad * (180 / Math.PI) * -1) + 180;
+                
+                pupil.style.transform = `translate(-50%, -50%) rotate(${rot}deg) translate(10px) rotate(-${rot}deg)`;
+            });
+        });
+
+        // POINTER LOCK
+        function lockPointer() {
+            document.body.requestPointerLock();
+        }
+
+        // Populate voices for the speaker when they load
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log("Voices loaded");
+        };
+    </script>
+</body>
+</html>
